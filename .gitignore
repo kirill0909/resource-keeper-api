@@ -2,6 +2,8 @@
 *.db
 .bin
 .env
+*.key
+*.crt
 plane
 plane2
 rules
