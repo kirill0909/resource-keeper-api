@@ -1,0 +1,6 @@
+.idea
+*.db
+.bin
+.env
+plane
+plane2
