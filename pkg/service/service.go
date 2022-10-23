@@ -5,6 +5,8 @@ import (
 	"github.com/kirill0909/resource-keeper-api/pkg/repository"
 )
 
+//go:generate mockgen -source=service.go -destination=mocks/mock.go
+
 type Authorization interface {
 	CreateUser(user models.User) (int, error)
 	GenerateToken(email, password string) (string, error)
