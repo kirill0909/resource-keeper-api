@@ -15,6 +15,11 @@ func (h *Handler) signUp(c *gin.Context) {
 		return
 	}
 
+	if err := checkEmptyValueUser(&input); err != nil {
+		newErrorResponse(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
 	id, err := h.service.Authorization.CreateUser(input)
 	if err != nil {
 		newErrorResponse(c, http.StatusBadRequest, err.Error())
