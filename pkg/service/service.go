@@ -1,8 +1,13 @@
 package service
 
-import "github.com/kirill0909/resource-keeper-api/pkg/repository"
+import (
+	"github.com/kirill0909/resource-keeper-api/models"
+	"github.com/kirill0909/resource-keeper-api/pkg/repository"
+)
 
-type Authorization interface{}
+type Authorization interface {
+	CreateUser(user models.User) (int, error)
+}
 
 type User interface{}
 
@@ -15,5 +20,7 @@ type Service struct {
 }
 
 func NewService(repo *repository.Repository) *Service {
-	return &Service{}
+	return &Service{
+		Authorization: NewAuthService(repo.Authorization),
+	}
 }

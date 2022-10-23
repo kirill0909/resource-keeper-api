@@ -1,8 +1,13 @@
 package repository
 
-import "github.com/jmoiron/sqlx"
+import (
+	"github.com/jmoiron/sqlx"
+	"github.com/kirill0909/resource-keeper-api/models"
+)
 
-type Authorization interface{}
+type Authorization interface {
+	CreateUser(user models.User) (int, error)
+}
 
 type User interface{}
 
@@ -15,5 +20,7 @@ type Repository struct {
 }
 
 func NewRepository(db *sqlx.DB) *Repository {
-	return &Repository{}
+	return &Repository{
+		Authorization: NewAuthPostgres(db),
+	}
 }
