@@ -16,3 +16,12 @@ func checkEmptyValueUser(user *models.User) error {
 
 	return nil
 }
+
+func checkEmptyValueSignInInputUser(email, password string) error {
+	if len(strings.TrimSpace(email)) == 0 ||
+		len(strings.TrimSpace(password)) == 0 {
+		return errors.New("value is empty")
+	}
+
+	return nil
+}
