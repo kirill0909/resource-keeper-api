@@ -5,13 +5,17 @@ import (
 
 	"github.com/kirill0909/resource-keeper-api"
 	"github.com/kirill0909/resource-keeper-api/pkg/handler"
+	"github.com/kirill0909/resource-keeper-api/pkg/repository"
+	"github.com/kirill0909/resource-keeper-api/pkg/service"
 )
 
 func main() {
 
-	srv := new(server.Server)
-	handler := new(handler.Handler)
+	repo := repository.NewRepository()
+	service := service.NewService(repo)
+	handler := handler.NewHandler(service)
 
+	srv := new(server.Server)
 	// Method InitRoutes returns object *gin.Engine and we can use this object
 	// as second parametr in method Run because gin.Engine
 	// implements method ServeHTTP(ResponseWriter, *Request) from Handler struct
