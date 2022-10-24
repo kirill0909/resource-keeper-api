@@ -35,7 +35,27 @@ func (h *Handler) createResource(c *gin.Context) {
 	})
 }
 
-func (h *Handler) getAllResource(c *gin.Context) {}
+type getAllResourcesResponse struct {
+	Data []models.UserResource `json:"data"`
+}
+
+func (h *Handler) getAllResources(c *gin.Context) {
+	userId, err := h.getUserId(c)
+	if err != nil {
+		return
+	}
+
+	resources, err := h.service.UserResource.GetAllResources(userId)
+	if err != nil {
+		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	c.JSON(http.StatusOK, getAllResourcesResponse{
+		Data: resources,
+	})
+
+}
 
 func (h *Handler) getResourceById(c *gin.Context) {}
 

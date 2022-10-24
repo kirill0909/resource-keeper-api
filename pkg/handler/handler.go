@@ -26,7 +26,7 @@ func (h *Handler) InitRoutes() *gin.Engine {
 	resource := router.Group("/resource", h.userIdentity)
 	{
 		resource.POST("/", h.createResource)
-		resource.GET("/", h.getAllResource)
+		resource.GET("/", h.getAllResources)
 		resource.GET("/:id", h.getResourceById)
 		resource.PUT("/:id", h.updateResource)
 		resource.DELETE("/:id", h.deleteResource)
