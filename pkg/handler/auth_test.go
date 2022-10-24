@@ -10,12 +10,12 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/kirill0909/resource-keeper-api/models"
 	"github.com/kirill0909/resource-keeper-api/pkg/service"
-	mocks_service "github.com/kirill0909/resource-keeper-api/pkg/service/mocks"
+	service_mocks "github.com/kirill0909/resource-keeper-api/pkg/service/mocks"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestHandler_signUp(t *testing.T) {
-	type mockBehavior func(s *mocks_service.MockAuthorization, user models.User)
+	type mockBehavior func(s *service_mocks.MockAuthorization, user models.User)
 
 	testTable := []struct {
 		name                 string
@@ -33,7 +33,7 @@ func TestHandler_signUp(t *testing.T) {
 				Email:    "john@gmail.com",
 				Password: "JohnPass",
 			},
-			mockBehavior: func(s *mocks_service.MockAuthorization, user models.User) {
+			mockBehavior: func(s *service_mocks.MockAuthorization, user models.User) {
 				s.EXPECT().CreateUser(user).Return(1, nil)
 			},
 			expectedStatusCode:   200,
@@ -42,14 +42,14 @@ func TestHandler_signUp(t *testing.T) {
 		{
 			name:                 "Empty Field",
 			inputBody:            `{"name":"John Down", "password":"JohnPass"}`,
-			mockBehavior:         func(s *mocks_service.MockAuthorization, user models.User) {},
+			mockBehavior:         func(s *service_mocks.MockAuthorization, user models.User) {},
 			expectedStatusCode:   400,
 			expectedResponseBody: `{"message":"invalid input body"}`,
 		},
 		{
 			name:                 "Empty Value",
 			inputBody:            `{"name":"John Down", "email":"john@gmail.com", "password":" "}`,
-			mockBehavior:         func(s *mocks_service.MockAuthorization, user models.User) {},
+			mockBehavior:         func(s *service_mocks.MockAuthorization, user models.User) {},
 			expectedStatusCode:   400,
 			expectedResponseBody: `{"message":"invalid input body"}`,
 		},
@@ -61,7 +61,7 @@ func TestHandler_signUp(t *testing.T) {
 				Email:    "john@gmail.com",
 				Password: "JohnPass",
 			},
-			mockBehavior: func(s *mocks_service.MockAuthorization, user models.User) {
+			mockBehavior: func(s *service_mocks.MockAuthorization, user models.User) {
 				s.EXPECT().CreateUser(user).Return(1, errors.New("somethig went wrong"))
 			},
 			expectedStatusCode:   500,
@@ -74,7 +74,7 @@ func TestHandler_signUp(t *testing.T) {
 			controller := gomock.NewController(t)
 			defer controller.Finish()
 
-			auth := mocks_service.NewMockAuthorization(controller)
+			auth := service_mocks.NewMockAuthorization(controller)
 			testCase.mockBehavior(auth, testCase.inputUser)
 
 			services := &service.Service{Authorization: auth}
@@ -97,7 +97,7 @@ func TestHandler_signUp(t *testing.T) {
 }
 
 func TestHandler_signIn(t *testing.T) {
-	type mockBehavior func(s *mocks_service.MockAuthorization, input signInInput)
+	type mockBehavior func(s *service_mocks.MockAuthorization, input signInInput)
 
 	testTable := []struct {
 		name                 string
@@ -111,7 +111,7 @@ func TestHandler_signIn(t *testing.T) {
 			name:             "Ok",
 			inputBody:        `{"email":"john@gmail.com", "password":"JohnPass"}`,
 			inputSignInInput: signInInput{Email: "john@gmail.com", Password: "JohnPass"},
-			mockBehavior: func(s *mocks_service.MockAuthorization, input signInInput) {
+			mockBehavior: func(s *service_mocks.MockAuthorization, input signInInput) {
 				s.EXPECT().GenerateToken(input.Email, input.Password).Return("token", nil)
 			},
 			expectedStatusCode:   200,
@@ -121,7 +121,7 @@ func TestHandler_signIn(t *testing.T) {
 			name:                 "Empty Field",
 			inputBody:            `{"email":"john@gmail.com"}`,
 			inputSignInInput:     signInInput{Email: "john@gmail.com", Password: "JohnPass"},
-			mockBehavior:         func(s *mocks_service.MockAuthorization, input signInInput) {},
+			mockBehavior:         func(s *service_mocks.MockAuthorization, input signInInput) {},
 			expectedStatusCode:   400,
 			expectedResponseBody: `{"message":"invalid input body"}`,
 		},
@@ -129,7 +129,7 @@ func TestHandler_signIn(t *testing.T) {
 			name:                 "Empty Value",
 			inputBody:            `{"email":"john@gmail.com", "password":" "}`,
 			inputSignInInput:     signInInput{Email: "john@gmail.com", Password: "John Down"},
-			mockBehavior:         func(s *mocks_service.MockAuthorization, input signInInput) {},
+			mockBehavior:         func(s *service_mocks.MockAuthorization, input signInInput) {},
 			expectedStatusCode:   400,
 			expectedResponseBody: `{"message":"invalid input body"}`,
 		},
@@ -137,7 +137,7 @@ func TestHandler_signIn(t *testing.T) {
 			name:             "Service Failure",
 			inputBody:        `{"email":"john@gmail.com", "password":"JohnPass"}`,
 			inputSignInInput: signInInput{Email: "john@gmail.com", Password: "JohnPass"},
-			mockBehavior: func(s *mocks_service.MockAuthorization, input signInInput) {
+			mockBehavior: func(s *service_mocks.MockAuthorization, input signInInput) {
 				s.EXPECT().GenerateToken(input.Email, input.Password).Return("", errors.New("something went wrong"))
 			},
 			expectedStatusCode:   500,
@@ -150,7 +150,7 @@ func TestHandler_signIn(t *testing.T) {
 			controller := gomock.NewController(t)
 			defer controller.Finish()
 
-			auth := mocks_service.NewMockAuthorization(controller)
+			auth := service_mocks.NewMockAuthorization(controller)
 			testCase.mockBehavior(auth, testCase.inputSignInInput)
 
 			services := &service.Service{Authorization: auth}

@@ -64,6 +64,21 @@ func (mr *MockAuthorizationMockRecorder) GenerateToken(email, password interface
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GenerateToken", reflect.TypeOf((*MockAuthorization)(nil).GenerateToken), email, password)
 }
 
+// ParseToken mocks base method.
+func (m *MockAuthorization) ParseToken(token string) (int, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ParseToken", token)
+	ret0, _ := ret[0].(int)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ParseToken indicates an expected call of ParseToken.
+func (mr *MockAuthorizationMockRecorder) ParseToken(token interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ParseToken", reflect.TypeOf((*MockAuthorization)(nil).ParseToken), token)
+}
+
 // MockUser is a mock of User interface.
 type MockUser struct {
 	ctrl     *gomock.Controller
