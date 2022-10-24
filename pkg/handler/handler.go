@@ -23,7 +23,7 @@ func (h *Handler) InitRoutes() *gin.Engine {
 		auth.GET("/ping", h.ping)
 	}
 
-	resource := router.Group("/resource")
+	resource := router.Group("/resource", h.userIdentity)
 	{
 		resource.POST("/", h.createResource)
 		resource.GET("/", h.getAllResource)
