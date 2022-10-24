@@ -84,7 +84,8 @@ func TestHandler_signUp(t *testing.T) {
 			router.POST("/sign-up", handler.signUp)
 
 			recorder := httptest.NewRecorder()
-			request := httptest.NewRequest("POST", "/sign-up", bytes.NewBufferString(testCase.inputBody))
+			request := httptest.NewRequest("POST", "/sign-up",
+				bytes.NewBufferString(testCase.inputBody))
 
 			router.ServeHTTP(recorder, request)
 
@@ -94,3 +95,84 @@ func TestHandler_signUp(t *testing.T) {
 		})
 	}
 }
+
+func TestHandler_signIn(t *testing.T) {
+	type mockBehavior func(s *mocks_service.MockAuthorization, input signInInput)
+
+	testTable := []struct {
+		name                 string
+		inputBody            string
+		inputSignInInput     signInInput
+		mockBehavior         mockBehavior
+		expectedStatusCode   int
+		expectedResponseBody string
+	}{
+		{
+			name:             "Ok",
+			inputBody:        `{"email":"john@gmail.com", "password":"JohnPass"}`,
+			inputSignInInput: signInInput{Email: "john@gmail.com", Password: "JohnPass"},
+			mockBehavior: func(s *mocks_service.MockAuthorization, input signInInput) {
+				s.EXPECT().GenerateToken(input.Email, input.Password).Return("token", nil)
+			},
+			expectedStatusCode:   200,
+			expectedResponseBody: `{"token":"token"}`,
+		},
+		{
+			name:                 "Empty Field",
+			inputBody:            `{"email":"john@gmail.com"}`,
+			inputSignInInput:     signInInput{Email: "john@gmail.com", Password: "JohnPass"},
+			mockBehavior:         func(s *mocks_service.MockAuthorization, input signInInput) {},
+			expectedStatusCode:   400,
+			expectedResponseBody: `{"message":"invalid input body"}`,
+		},
+		{
+			name:                 "Empty Value",
+			inputBody:            `{"email":"john@gmail.com", "password":" "}`,
+			inputSignInInput:     signInInput{Email: "john@gmail.com", Password: "John Down"},
+			mockBehavior:         func(s *mocks_service.MockAuthorization, input signInInput) {},
+			expectedStatusCode:   400,
+			expectedResponseBody: `{"message":"invalid input body"}`,
+		},
+		{
+			name:             "Service Failure",
+			inputBody:        `{"email":"john@gmail.com", "password":"JohnPass"}`,
+			inputSignInInput: signInInput{Email: "john@gmail.com", Password: "JohnPass"},
+			mockBehavior: func(s *mocks_service.MockAuthorization, input signInInput) {
+				s.EXPECT().GenerateToken(input.Email, input.Password).Return("", errors.New("something went wrong"))
+			},
+			expectedStatusCode:   500,
+			expectedResponseBody: `{"message":"something went wrong"}`,
+		},
+	}
+
+	for _, testCase := range testTable {
+		t.Run(testCase.name, func(t *testing.T) {
+			controller := gomock.NewController(t)
+			defer controller.Finish()
+
+			auth := mocks_service.NewMockAuthorization(controller)
+			testCase.mockBehavior(auth, testCase.inputSignInInput)
+
+			services := &service.Service{Authorization: auth}
+			handler := NewHandler(services)
+
+			router := gin.New()
+			router.POST("/sign-in", handler.signIn)
+
+			recorder := httptest.NewRecorder()
+			request := httptest.NewRequest("POST", "/sign-in",
+				bytes.NewBufferString(testCase.inputBody))
+
+			router.ServeHTTP(recorder, request)
+
+			assert.Equal(t, testCase.expectedResponseBody, recorder.Body.String())
+			assert.Equal(t, testCase.expectedStatusCode, recorder.Code)
+
+		})
+	}
+
+}
+
+/*
+
+ */
