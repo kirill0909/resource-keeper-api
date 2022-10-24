@@ -172,7 +172,3 @@ func TestHandler_signIn(t *testing.T) {
 	}
 
 }
-
-/*
-
- */
