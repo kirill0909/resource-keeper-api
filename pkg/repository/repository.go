@@ -12,7 +12,9 @@ type Authorization interface {
 
 type User interface{}
 
-type UserResource interface{}
+type UserResource interface {
+	CreateResource(resource models.UserResource) (int, error)
+}
 
 type Repository struct {
 	Authorization
@@ -23,5 +25,6 @@ type Repository struct {
 func NewRepository(db *sqlx.DB) *Repository {
 	return &Repository{
 		Authorization: NewAuthPostgres(db),
+		UserResource:  NewUserResourcePostgres(db),
 	}
 }

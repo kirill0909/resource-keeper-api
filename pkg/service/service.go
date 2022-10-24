@@ -15,7 +15,9 @@ type Authorization interface {
 
 type User interface{}
 
-type UserResource interface{}
+type UserResource interface {
+	CreateResource(resource models.UserResource) (int, error)
+}
 
 type Service struct {
 	Authorization
@@ -26,5 +28,6 @@ type Service struct {
 func NewService(repo *repository.Repository) *Service {
 	return &Service{
 		Authorization: NewAuthService(repo.Authorization),
+		UserResource:  NewUserResourceService(repo.UserResource),
 	}
 }
