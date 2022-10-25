@@ -4,7 +4,8 @@ import (
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/rand"
-	"encoding/hex"
+	"encoding/base64"
+	"errors"
 	"github.com/kirill0909/resource-keeper-api/models"
 	"github.com/kirill0909/resource-keeper-api/pkg/repository"
 	"io"
@@ -20,11 +21,11 @@ func NewUserResourceService(repo repository.UserResource) *UserResourceService {
 }
 
 func (s *UserResourceService) CreateResource(resource models.UserResource) (int, error) {
-	if err := encrypt(&resource.ResourcePassword); err != nil {
+	if err := encrypt([]byte(os.Getenv("ENCRYPTION_KEY")), &resource.ResourcePassword); err != nil {
 		return 0, err
 	}
 
-	if err := encrypt(&resource.ResourceLogin); err != nil {
+	if err := encrypt([]byte(os.Getenv("ENCRYPTION_KEY")), &resource.ResourceLogin); err != nil {
 		return 0, err
 	}
 
@@ -32,16 +33,29 @@ func (s *UserResourceService) CreateResource(resource models.UserResource) (int,
 }
 
 func (s *UserResourceService) GetAllResources(userId int) ([]models.UserResource, error) {
-	return s.repo.GetAllResources(userId)
+	resources, err := s.repo.GetAllResources(userId)
+	if err != nil {
+		return nil, err
+	}
+	for index := range resources {
+		if err := decrypt([]byte(os.Getenv("ENCRYPTION_KEY")), &resources[index].ResourceLogin); err != nil {
+			return nil, err
+		}
+		if err := decrypt([]byte(os.Getenv("ENCRYPTION_KEY")), &resources[index].ResourcePassword); err != nil {
+			return nil, err
+		}
+	}
+
+	return resources, nil
 }
 
-func encrypt(sensitiveData *string) error {
-	block, err := aes.NewCipher([]byte(os.Getenv("ENCRYPTION_KEY")))
+func encrypt(key []byte, sensitiveData *string) error {
+	block, err := aes.NewCipher(key)
 	if err != nil {
 		return err
 	}
 
-	cipherText := make([]byte, len(*sensitiveData)+aes.BlockSize)
+	cipherText := make([]byte, len([]byte(*sensitiveData))+aes.BlockSize)
 
 	iv := cipherText[:aes.BlockSize]
 	if _, err := io.ReadFull(rand.Reader, iv); err != nil {
@@ -51,6 +65,28 @@ func encrypt(sensitiveData *string) error {
 	stream := cipher.NewCFBEncrypter(block, iv)
 	stream.XORKeyStream(cipherText[aes.BlockSize:], []byte(*sensitiveData))
 
-	*sensitiveData = hex.EncodeToString(cipherText)
+	*sensitiveData = base64.RawStdEncoding.EncodeToString(cipherText)
+	return nil
+}
+
+func decrypt(key []byte, secure *string) error {
+	cipherText, err := base64.RawStdEncoding.DecodeString(*secure)
+
+	block, err := aes.NewCipher(key)
+	if err != nil {
+		return err
+	}
+
+	if len(cipherText) < aes.BlockSize {
+		return errors.New("cipherText block size is too short!")
+	}
+
+	iv := (cipherText)[:aes.BlockSize]
+	cipherText = cipherText[aes.BlockSize:]
+
+	stream := cipher.NewCFBDecrypter(block, []byte(iv))
+	stream.XORKeyStream(cipherText, cipherText)
+
+	*secure = string(cipherText)
 	return nil
 }
