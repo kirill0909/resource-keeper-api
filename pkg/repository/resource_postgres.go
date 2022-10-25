@@ -41,3 +41,14 @@ func (r *UserResourcePostgres) GetAllResources(userId int) ([]models.UserResourc
 
 	return resources, err
 }
+
+func (r *UserResourcePostgres) GetById(userId, resourceId int) (models.UserResource, error) {
+	var resource models.UserResource
+
+	query := fmt.Sprintf(`SELECT users_resources.* FROM %s JOIN %s ON users.id = users_resources.user_id
+	WHERE user_id = $1 AND users_resources.id = $2`, usersResourcesTable, usersTable)
+
+	err := r.db.Get(&resource, query, userId, resourceId)
+
+	return resource, err
+}

@@ -4,6 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/kirill0909/resource-keeper-api/models"
 	"net/http"
+	"strconv"
 )
 
 func (h *Handler) createResource(c *gin.Context) {
@@ -57,7 +58,26 @@ func (h *Handler) getAllResources(c *gin.Context) {
 
 }
 
-func (h *Handler) getResourceById(c *gin.Context) {}
+func (h *Handler) getResourceById(c *gin.Context) {
+	userId, err := h.getUserId(c)
+	if err != nil {
+		return
+	}
+
+	resourceId, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		newErrorResponse(c, http.StatusBadRequest, "invalid id param")
+		return
+	}
+
+	resource, err := h.service.UserResource.GetById(userId, resourceId)
+	if err != nil {
+		newErrorResponse(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"resource": resource})
+}
 
 func (h *Handler) updateResource(c *gin.Context) {}
 

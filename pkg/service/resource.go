@@ -49,6 +49,23 @@ func (s *UserResourceService) GetAllResources(userId int) ([]models.UserResource
 	return resources, nil
 }
 
+func (s *UserResourceService) GetById(userId, resourceId int) (models.UserResource, error) {
+	resource, err := s.repo.GetById(userId, resourceId)
+	if err != nil {
+		return models.UserResource{}, err
+	}
+
+	if err := decrypt([]byte(os.Getenv("ENCRYPTION_KEY")), &resource.ResourceLogin); err != nil {
+		return models.UserResource{}, err
+	}
+
+	if err := decrypt([]byte(os.Getenv("ENCRYPTION_KEY")), &resource.ResourcePassword); err != nil {
+		return models.UserResource{}, err
+	}
+
+	return resource, nil
+}
+
 func encrypt(key []byte, sensitiveData *string) error {
 	block, err := aes.NewCipher(key)
 	if err != nil {
