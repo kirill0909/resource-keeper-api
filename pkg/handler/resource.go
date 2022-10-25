@@ -79,7 +79,31 @@ func (h *Handler) getResourceById(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"resource": resource})
 }
 
-func (h *Handler) updateResource(c *gin.Context) {}
+func (h *Handler) updateResource(c *gin.Context) {
+	userId, err := h.getUserId(c)
+	if err != nil {
+		return
+	}
+
+	resourceId, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		newErrorResponse(c, http.StatusBadRequest, "invalid id param")
+		return
+	}
+
+	var input models.UserResourceUpdate
+	if err := c.BindJSON(&input); err != nil {
+		newErrorResponse(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	if err := h.service.UserResource.UpdateResource(userId, resourceId, input); err != nil {
+		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	c.JSON(http.StatusOK, statusResponse{Status: "ok"})
+}
 
 func (h *Handler) deleteResource(c *gin.Context) {
 	userId, err := h.getUserId(c)
@@ -99,5 +123,5 @@ func (h *Handler) deleteResource(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, "ok")
+	c.JSON(http.StatusOK, statusResponse{Status: "ok"})
 }

@@ -3,6 +3,8 @@ package repository
 import (
 	"errors"
 	"fmt"
+	"log"
+	"strings"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/kirill0909/resource-keeper-api/models"
@@ -19,8 +21,8 @@ func NewUserResourcePostgres(db *sqlx.DB) *UserResourcePostgres {
 func (r *UserResourcePostgres) CreateResource(resource models.UserResource) (int, error) {
 	var id int
 
-	query := fmt.Sprintf(`INSERT INTO %s (user_id, resource_name, resource_login,
-	resource_password_hash, date_creation, last_update) VALUES ($1, $2, $3, $4, now(), now())
+	query := fmt.Sprintf(`INSERT INTO %s (user_id, resource_name, resource_login_enc,
+	resource_password_enc, date_creation, last_update) VALUES ($1, $2, $3, $4, now(), now())
 	RETURNING id`, usersResourcesTable)
 
 	row := r.db.QueryRow(query, resource.UID, resource.ResourceName, resource.ResourceLogin, resource.ResourcePassword)
@@ -65,4 +67,38 @@ func (r *UserResourcePostgres) DeleteResource(userId, resourceId int) error {
 	}
 
 	return nil
+}
+
+func (r *UserResourcePostgres) UpdateResource(userId, resourceId int, input models.UserResourceUpdate) error {
+	setValues := make([]string, 0)
+	args := make([]interface{}, 0)
+	argId := 1
+
+	if input.ResourceName != nil && len(strings.TrimSpace(*input.ResourceName)) != 0 {
+		setValues = append(setValues, fmt.Sprintf("resource_name=$%d", argId))
+		args = append(args, *input.ResourceName)
+		argId++
+	}
+
+	if input.ResourceLogin != nil && len(strings.TrimSpace(*input.ResourceLogin)) != 0 {
+		log.Println("---HERE Login")
+		setValues = append(setValues, fmt.Sprintf("resource_login_enc=$%d", argId))
+		args = append(args, *input.ResourceLogin)
+		argId++
+	}
+
+	if input.ResourcePassword != nil && len(strings.TrimSpace(*input.ResourcePassword)) != 0 {
+		log.Println("---HERE Password")
+		setValues = append(setValues, fmt.Sprintf("resource_password_enc=$%d", argId))
+		args = append(args, *input.ResourcePassword)
+	}
+
+	setQuery := strings.Join(setValues, ", ")
+
+	query := fmt.Sprintf("UPDATE %s SET %s, last_update = now() WHERE user_id=%d AND id=%d", usersResourcesTable,
+		setQuery, userId, resourceId)
+
+	_, err := r.db.Exec(query, args...)
+
+	return err
 }

@@ -19,6 +19,7 @@ type UserResource interface {
 	CreateResource(resource models.UserResource) (int, error)
 	GetAllResources(userId int) ([]models.UserResource, error)
 	GetById(userId, resourceId int) (models.UserResource, error)
+	UpdateResource(userId, resourceId int, input models.UserResourceUpdate) error
 	DeleteResource(userId, resourceId int) error
 }
 

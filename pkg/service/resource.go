@@ -10,6 +10,7 @@ import (
 	"github.com/kirill0909/resource-keeper-api/pkg/repository"
 	"io"
 	"os"
+	"strings"
 )
 
 type UserResourceService struct {
@@ -68,6 +69,22 @@ func (s *UserResourceService) GetById(userId, resourceId int) (models.UserResour
 
 func (s *UserResourceService) DeleteResource(userId, resourceId int) error {
 	return s.repo.DeleteResource(userId, resourceId)
+}
+
+func (s *UserResourceService) UpdateResource(userId, resourceId int, input models.UserResourceUpdate) error {
+	if input.ResourceLogin != nil && len(strings.TrimSpace(*input.ResourcePassword)) != 0 {
+		if err := encrypt([]byte(os.Getenv("ENCRYPTION_KEY")), input.ResourceLogin); err != nil {
+			return err
+		}
+	}
+
+	if input.ResourcePassword != nil && len(strings.TrimSpace(*input.ResourcePassword)) != 0 {
+		if err := encrypt([]byte(os.Getenv("ENCRYPTION_KEY")), input.ResourcePassword); err != nil {
+			return err
+		}
+	}
+
+	return s.repo.UpdateResource(userId, resourceId, input)
 }
 
 func encrypt(key []byte, sensitiveData *string) error {
