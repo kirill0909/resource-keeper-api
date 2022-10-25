@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/jmoiron/sqlx"
@@ -51,4 +52,17 @@ func (r *UserResourcePostgres) GetById(userId, resourceId int) (models.UserResou
 	err := r.db.Get(&resource, query, userId, resourceId)
 
 	return resource, err
+}
+
+func (r *UserResourcePostgres) DeleteResource(userId, resourceId int) error {
+	var id int
+
+	query := fmt.Sprintf("DELETE FROM %s WHERE user_id = $1 AND id = $2 RETURNING id",
+		usersResourcesTable)
+	row := r.db.QueryRow(query, userId, resourceId)
+	if err := row.Scan(&id); err != nil {
+		return errors.New("resource id not found")
+	}
+
+	return nil
 }

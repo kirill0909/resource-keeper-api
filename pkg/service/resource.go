@@ -66,6 +66,10 @@ func (s *UserResourceService) GetById(userId, resourceId int) (models.UserResour
 	return resource, nil
 }
 
+func (s *UserResourceService) DeleteResource(userId, resourceId int) error {
+	return s.repo.DeleteResource(userId, resourceId)
+}
+
 func encrypt(key []byte, sensitiveData *string) error {
 	block, err := aes.NewCipher(key)
 	if err != nil {

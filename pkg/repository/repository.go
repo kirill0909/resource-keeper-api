@@ -16,6 +16,7 @@ type UserResource interface {
 	CreateResource(resource models.UserResource) (int, error)
 	GetAllResources(userId int) ([]models.UserResource, error)
 	GetById(userId, resourceId int) (models.UserResource, error)
+	DeleteResource(userId, resourceId int) error
 }
 
 type Repository struct {
