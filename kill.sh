@@ -1,4 +1,4 @@
 #!/bin/bash
 
 processID=$(pidof main)
-kill $processID; echo "process $processID was killed"
+kill -SIGINT $processID; echo "process $processID was killed"

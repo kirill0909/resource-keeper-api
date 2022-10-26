@@ -6,6 +6,7 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/jmoiron/sqlx"
 	"github.com/joho/godotenv"
 	"github.com/kirill0909/resource-keeper-api"
 	"github.com/kirill0909/resource-keeper-api/pkg/handler"
@@ -26,14 +27,7 @@ func main() {
 		logrus.Fatalf("error loading env variables: %s", err.Error())
 	}
 
-	db, err := repository.NewPostgresDB(repository.Config{
-		Host:     viper.GetString("db.host"),
-		Port:     viper.GetString("db.port"),
-		Username: viper.GetString("db.username"),
-		DBName:   viper.GetString("db.dbname"),
-		Password: os.Getenv("DB_POSTGRES_PASSWORD"),
-		SSLMode:  viper.GetString("db.sslmode"),
-	})
+	db, err := initDB()
 	if err != nil {
 		logrus.Fatalf("faild to initialize db: %s", err.Error())
 	}
@@ -41,6 +35,33 @@ func main() {
 	repo := repository.NewRepository(db)
 	service := service.NewService(repo)
 	handler := handler.NewHandler(service)
+
+	signalChannel := make(chan os.Signal, 1)
+	signal.Notify(signalChannel, syscall.SIGINT, syscall.SIGTERM)
+
+	exitChannel := make(chan int)
+	go func() {
+		for {
+			s := <-signalChannel
+			switch s {
+			case syscall.SIGINT:
+				logrus.Println("The interrupt signal has been triggered")
+				exitChannel <- 0
+			case syscall.SIGTERM:
+				logrus.Println("The terminte signal has been triggered")
+				exitChannel <- 0
+			case syscall.SIGHUP:
+				logrus.Println("The hung up signal has been triggered")
+				exitChannel <- 0
+			default:
+				logrus.Println("Unknown signal")
+				exitChannel <- 1
+			}
+		}
+	}()
+
+	exitCode := <-exitChannel
+	defer os.Exit(exitCode)
 
 	srv := new(server.Server)
 	// Method InitRoutes returns object *gin.Engine and we can use this object
@@ -53,10 +74,6 @@ func main() {
 		}
 	}()
 
-	quit := make(chan os.Signal, 1)
-	signal.Notify(quit, syscall.SIGTERM, syscall.SIGINT)
-	<-quit
-
 	if err := srv.Shutdown(context.Background()); err != nil {
 		logrus.Errorf("error occured while on server shuting down: %s", err.Error())
 	}
@@ -64,6 +81,18 @@ func main() {
 	if err := db.Close(); err != nil {
 		logrus.Errorf("error occured on db connection close: %s", err.Error())
 	}
+
+}
+
+func initDB() (*sqlx.DB, error) {
+	return repository.NewPostgresDB(repository.Config{
+		Host:     viper.GetString("db.host"),
+		Port:     viper.GetString("db.port"),
+		Username: viper.GetString("db.username"),
+		DBName:   viper.GetString("db.dbname"),
+		Password: os.Getenv("DB_POSTGRES_PASSWORD"),
+		SSLMode:  viper.GetString("db.sslmode"),
+	})
 }
 
 func initConfig() error {
