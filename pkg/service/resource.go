@@ -72,7 +72,11 @@ func (s *UserResourceService) DeleteResource(userId, resourceId int) error {
 }
 
 func (s *UserResourceService) UpdateResource(userId, resourceId int, input models.UserResourceUpdate) error {
-	if input.ResourceLogin != nil && len(strings.TrimSpace(*input.ResourcePassword)) != 0 {
+	if err := input.Validate(); err != nil {
+		return err
+	}
+
+	if input.ResourceLogin != nil && len(strings.TrimSpace(*input.ResourceLogin)) != 0 {
 		if err := encrypt([]byte(os.Getenv("ENCRYPTION_KEY")), input.ResourceLogin); err != nil {
 			return err
 		}

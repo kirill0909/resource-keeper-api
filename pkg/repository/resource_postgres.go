@@ -3,7 +3,6 @@ package repository
 import (
 	"errors"
 	"fmt"
-	"log"
 	"strings"
 
 	"github.com/jmoiron/sqlx"
@@ -81,18 +80,19 @@ func (r *UserResourcePostgres) UpdateResource(userId, resourceId int, input mode
 	}
 
 	if input.ResourceLogin != nil && len(strings.TrimSpace(*input.ResourceLogin)) != 0 {
-		log.Println("---HERE Login")
 		setValues = append(setValues, fmt.Sprintf("resource_login_enc=$%d", argId))
 		args = append(args, *input.ResourceLogin)
 		argId++
 	}
 
 	if input.ResourcePassword != nil && len(strings.TrimSpace(*input.ResourcePassword)) != 0 {
-		log.Println("---HERE Password")
 		setValues = append(setValues, fmt.Sprintf("resource_password_enc=$%d", argId))
 		args = append(args, *input.ResourcePassword)
 	}
 
+	if len(setValues) == 0 {
+		return errors.New("no new value for set")
+	}
 	setQuery := strings.Join(setValues, ", ")
 
 	query := fmt.Sprintf("UPDATE %s SET %s, last_update = now() WHERE user_id=%d AND id=%d", usersResourcesTable,
