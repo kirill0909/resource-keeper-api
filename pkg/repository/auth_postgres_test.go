@@ -7,7 +7,7 @@ import (
 	"testing"
 )
 
-func TestRepository_CreateUser(t *testing.T) {
+func TestAuthPostgres_CreateUser(t *testing.T) {
 	db, mock, err := sqlmock.Newx()
 	if err != nil {
 		t.Fatalf("an error '%s' was not expected when opening a stub DB connection", err.Error())
@@ -38,7 +38,7 @@ func TestRepository_CreateUser(t *testing.T) {
 			want: 1,
 		},
 		{
-			name: "Empty field",
+			name: "Empty Value",
 			mock: func() {
 				rows := sqlmock.NewRows([]string{"id"})
 				mock.ExpectQuery("INSERT INTO users").
@@ -69,7 +69,7 @@ func TestRepository_CreateUser(t *testing.T) {
 	}
 }
 
-func TestRepository_GetUser(t *testing.T) {
+func TestAuthPostgres_GetUser(t *testing.T) {
 	db, mock, err := sqlmock.Newx()
 	if err != nil {
 		t.Fatalf("an error '%s' was not expected when opening a stub DB connection", err.Error())
