@@ -37,7 +37,7 @@ func main() {
 	handler := handler.NewHandler(service)
 
 	signalChannel := make(chan os.Signal, 1)
-	signal.Notify(signalChannel, syscall.SIGINT, syscall.SIGTERM)
+	signal.Notify(signalChannel, syscall.SIGINT, syscall.SIGTERM, syscall.SIGHUP)
 
 	exitChannel := make(chan int)
 	go func() {
@@ -60,9 +60,6 @@ func main() {
 		}
 	}()
 
-	exitCode := <-exitChannel
-	defer os.Exit(exitCode)
-
 	srv := new(server.Server)
 	// Method InitRoutes returns object *gin.Engine and we can use this object
 	// as second parametr in method Run because gin.Engine
@@ -73,6 +70,9 @@ func main() {
 			logrus.Fatalf("error occured while running http server: %s", err.Error())
 		}
 	}()
+
+	exitCode := <-exitChannel
+	defer os.Exit(exitCode)
 
 	if err := srv.Shutdown(context.Background()); err != nil {
 		logrus.Errorf("error occured while on server shuting down: %s", err.Error())

@@ -51,7 +51,7 @@ func TestHandler_signUp(t *testing.T) {
 			inputBody:            `{"name":"John Down", "email":"john@gmail.com", "password":" "}`,
 			mockBehavior:         func(s *service_mocks.MockAuthorization, user models.User) {},
 			expectedStatusCode:   400,
-			expectedResponseBody: `{"message":"invalid input body"}`,
+			expectedResponseBody: `{"message":"invalid input value"}`,
 		},
 		{
 			name:      "Service Failure",
@@ -131,7 +131,7 @@ func TestHandler_signIn(t *testing.T) {
 			inputSignInInput:     signInInput{Email: "john@gmail.com", Password: "John Down"},
 			mockBehavior:         func(s *service_mocks.MockAuthorization, input signInInput) {},
 			expectedStatusCode:   400,
-			expectedResponseBody: `{"message":"invalid input body"}`,
+			expectedResponseBody: `{"message":"invalid input value"}`,
 		},
 		{
 			name:             "Service Failure",

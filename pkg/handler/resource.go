@@ -8,13 +8,13 @@ import (
 )
 
 func (h *Handler) createResource(c *gin.Context) {
-	userId, err := h.getUserId(c)
+	userId, err := getUserId(c)
 	if err != nil {
+		newErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 
 	var input models.UserResource
-	input.UID = userId
 	if err := c.BindJSON(&input); err != nil {
 		newErrorResponse(c, http.StatusBadRequest, "invalid input body")
 		return
@@ -25,6 +25,7 @@ func (h *Handler) createResource(c *gin.Context) {
 		return
 	}
 
+	input.UID = userId
 	resourceId, err := h.service.UserResource.CreateResource(input)
 	if err != nil {
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
@@ -41,7 +42,7 @@ type getAllResourcesResponse struct {
 }
 
 func (h *Handler) getAllResources(c *gin.Context) {
-	userId, err := h.getUserId(c)
+	userId, err := getUserId(c)
 	if err != nil {
 		return
 	}
@@ -59,7 +60,7 @@ func (h *Handler) getAllResources(c *gin.Context) {
 }
 
 func (h *Handler) getResourceById(c *gin.Context) {
-	userId, err := h.getUserId(c)
+	userId, err := getUserId(c)
 	if err != nil {
 		return
 	}
@@ -80,7 +81,7 @@ func (h *Handler) getResourceById(c *gin.Context) {
 }
 
 func (h *Handler) updateResource(c *gin.Context) {
-	userId, err := h.getUserId(c)
+	userId, err := getUserId(c)
 	if err != nil {
 		return
 	}
@@ -106,7 +107,7 @@ func (h *Handler) updateResource(c *gin.Context) {
 }
 
 func (h *Handler) deleteResource(c *gin.Context) {
-	userId, err := h.getUserId(c)
+	userId, err := getUserId(c)
 	if err != nil {
 		return
 	}

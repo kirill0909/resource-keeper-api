@@ -124,3 +124,76 @@ func NewMockUserResource(ctrl *gomock.Controller) *MockUserResource {
 func (m *MockUserResource) EXPECT() *MockUserResourceMockRecorder {
 	return m.recorder
 }
+
+// CreateResource mocks base method.
+func (m *MockUserResource) CreateResource(resource models.UserResource) (int, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateResource", resource)
+	ret0, _ := ret[0].(int)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CreateResource indicates an expected call of CreateResource.
+func (mr *MockUserResourceMockRecorder) CreateResource(resource interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateResource", reflect.TypeOf((*MockUserResource)(nil).CreateResource), resource)
+}
+
+// DeleteResource mocks base method.
+func (m *MockUserResource) DeleteResource(userId, resourceId int) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteResource", userId, resourceId)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteResource indicates an expected call of DeleteResource.
+func (mr *MockUserResourceMockRecorder) DeleteResource(userId, resourceId interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteResource", reflect.TypeOf((*MockUserResource)(nil).DeleteResource), userId, resourceId)
+}
+
+// GetAllResources mocks base method.
+func (m *MockUserResource) GetAllResources(userId int) ([]models.UserResource, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetAllResources", userId)
+	ret0, _ := ret[0].([]models.UserResource)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetAllResources indicates an expected call of GetAllResources.
+func (mr *MockUserResourceMockRecorder) GetAllResources(userId interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAllResources", reflect.TypeOf((*MockUserResource)(nil).GetAllResources), userId)
+}
+
+// GetById mocks base method.
+func (m *MockUserResource) GetById(userId, resourceId int) (models.UserResource, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetById", userId, resourceId)
+	ret0, _ := ret[0].(models.UserResource)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetById indicates an expected call of GetById.
+func (mr *MockUserResourceMockRecorder) GetById(userId, resourceId interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetById", reflect.TypeOf((*MockUserResource)(nil).GetById), userId, resourceId)
+}
+
+// UpdateResource mocks base method.
+func (m *MockUserResource) UpdateResource(userId, resourceId int, input models.UserResourceUpdate) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateResource", userId, resourceId, input)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateResource indicates an expected call of UpdateResource.
+func (mr *MockUserResourceMockRecorder) UpdateResource(userId, resourceId, input interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateResource", reflect.TypeOf((*MockUserResource)(nil).UpdateResource), userId, resourceId, input)
+}
