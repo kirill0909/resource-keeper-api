@@ -246,3 +246,133 @@ func TestHandler_getResourceById(t *testing.T) {
 		})
 	}
 }
+
+func TestHandler_updateResource(t *testing.T) {
+	type mockBehavior func(r *service_mocks.MockUserResource, userId, rsourceid int,
+		input models.UserResourceUpdate)
+
+	args := struct {
+		ResName  string
+		ResLogin string
+		ResPass  string
+	}{
+		ResName:  "rname",
+		ResLogin: "rlogin",
+		ResPass:  "rpass",
+	}
+
+	testTable := []struct {
+		name                 string
+		UID                  int
+		resourceId           int
+		inputBody            string
+		inputResource        models.UserResourceUpdate
+		mockBehavior         mockBehavior
+		expectedStatusCode   int
+		expectedResponseBody string
+	}{
+		{
+			name:       "Ok",
+			UID:        1,
+			resourceId: 1,
+			inputBody:  `{"resource_name":"rname", "resource_login":"rlogin", "resource_password":"rpass"}`,
+			inputResource: models.UserResourceUpdate{
+				ResourceName:     &args.ResName,
+				ResourceLogin:    &args.ResLogin,
+				ResourcePassword: &args.ResPass,
+			},
+			mockBehavior: func(r *service_mocks.MockUserResource, userId, resourceId int, input models.UserResourceUpdate) {
+				r.EXPECT().UpdateResource(userId, resourceId, input).Return(nil)
+			},
+			expectedStatusCode:   200,
+			expectedResponseBody: `{"status":"ok"}`,
+		},
+		{
+			name:      "Invalid id param",
+			inputBody: `{"resource_name":"rname", "resource_login":"rlogin", "resource_password":"rpass"}`,
+			inputResource: models.UserResourceUpdate{
+				ResourceName:     &args.ResName,
+				ResourceLogin:    &args.ResLogin,
+				ResourcePassword: &args.ResPass,
+			},
+			mockBehavior: func(r *service_mocks.MockUserResource, userId, resourceId int, input models.UserResourceUpdate) {
+				r.EXPECT().UpdateResource(userId, resourceId, input).Return(errors.New("invalid id param"))
+			},
+			expectedStatusCode:   500,
+			expectedResponseBody: `{"message":"invalid id param"}`,
+		},
+		{
+			name:      "Empty value",
+			inputBody: `{"resource_name":" ", "resource_login":"rlogin", "resource_password":"rpass"}`,
+			inputResource: models.UserResourceUpdate{
+				ResourceName:     pointerString(" "),
+				ResourceLogin:    &args.ResLogin,
+				ResourcePassword: &args.ResPass,
+			},
+			mockBehavior: func(r *service_mocks.MockUserResource, userId, resourceId int, input models.UserResourceUpdate) {
+				r.EXPECT().UpdateResource(userId, resourceId, input).Return(errors.New("update structure has no values"))
+			},
+			expectedStatusCode:   500,
+			expectedResponseBody: `{"message":"update structure has no values"}`,
+		},
+		{
+			name:      "All values is empty",
+			inputBody: `{"resource_name":" ", "resource_login":" ", "resource_password":" "}`,
+			inputResource: models.UserResourceUpdate{
+				ResourceName:     pointerString(" "),
+				ResourceLogin:    pointerString(" "),
+				ResourcePassword: pointerString(" "),
+			},
+			mockBehavior: func(r *service_mocks.MockUserResource, userId, resourceId int, input models.UserResourceUpdate) {
+				r.EXPECT().UpdateResource(userId, resourceId, input).Return(errors.New("update structure has no values"))
+			},
+			expectedStatusCode:   500,
+			expectedResponseBody: `{"message":"update structure has no values"}`,
+		},
+		{
+			name:          "Empty body",
+			inputBody:     `{}`,
+			inputResource: models.UserResourceUpdate{},
+			mockBehavior: func(r *service_mocks.MockUserResource, userId, resourceId int, input models.UserResourceUpdate) {
+				r.EXPECT().UpdateResource(userId, resourceId, input).Return(errors.New("no new value for set"))
+			},
+			expectedStatusCode:   500,
+			expectedResponseBody: `{"message":"no new value for set"}`,
+		},
+	}
+
+	for _, testCase := range testTable {
+		t.Run(testCase.name, func(t *testing.T) {
+			controller := gomock.NewController(t)
+			controller.Finish()
+
+			repo := service_mocks.NewMockUserResource(controller)
+			testCase.mockBehavior(repo, testCase.UID, testCase.resourceId, testCase.inputResource)
+
+			service := &service.Service{UserResource: repo}
+			handler := Handler{service}
+
+			router := gin.New()
+			router.PUT("/resource", handler.updateResource)
+
+			recorder := httptest.NewRecorder()
+			request := httptest.NewRequest("PUT", "/resource",
+				bytes.NewBufferString(testCase.inputBody))
+
+			testContext, _ := gin.CreateTestContext(recorder)
+			testContext.Request = request
+			testContext.Set(userCtx, testCase.UID)
+			testContext.AddParam("id", fmt.Sprintf("%d", testCase.resourceId))
+
+			handler.updateResource(testContext)
+
+			assert.Equal(t, testCase.expectedStatusCode, recorder.Code)
+			assert.Equal(t, testCase.expectedResponseBody, recorder.Body.String())
+
+		})
+	}
+}
+
+func pointerString(str string) *string {
+	return &str
+}
