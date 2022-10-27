@@ -3,6 +3,7 @@ package handler
 import (
 	"bytes"
 	"errors"
+	"fmt"
 	"net/http/httptest"
 	"testing"
 
@@ -171,5 +172,77 @@ func TestHandler_getAllResources(t *testing.T) {
 	}
 }
 
-/*
- */
+func TestHandler_getResourceById(t *testing.T) {
+	type mockBehavior func(r *service_mocks.MockUserResource, userId, rsourceid int)
+
+	testTable := []struct {
+		name                 string
+		UID                  int
+		resourceId           int
+		mockBehavior         mockBehavior
+		expectedStatusCode   int
+		expectedResponseBody string
+	}{
+		{
+			name:       "Ok",
+			UID:        1,
+			resourceId: 1,
+			mockBehavior: func(r *service_mocks.MockUserResource, userId, resourceId int) {
+				r.EXPECT().GetById(userId, resourceId).Return(models.UserResource{
+					Id: 1, UID: 1, ResourceName: "rname", ResourceLogin: "rlogin", ResourcePassword: "rpass",
+					DateCreation: "2022-10-27 10:40:21.123", LastUpdate: "2022-10-27 10:40:21.123"}, nil)
+			},
+			expectedStatusCode: 200,
+			expectedResponseBody: `{"resource":{"id":1,"user_id":1,"resource_name":"rname","resource_login":"rlogin",` +
+				`"resource_password":"rpass","date_creation":"2022-10-27 10:40:21.123","last_update":"2022-10-27 10:40:21.123"}}`,
+		},
+		{
+			name: "Invalid id param",
+			mockBehavior: func(r *service_mocks.MockUserResource, userId, resourceId int) {
+				r.EXPECT().GetById(userId, resourceId).Return(models.UserResource{}, errors.New("invalid id param"))
+			},
+			expectedStatusCode:   500,
+			expectedResponseBody: `{"message":"invalid id param"}`,
+		},
+		{
+			name:       "Service faild",
+			UID:        1,
+			resourceId: 1,
+			mockBehavior: func(r *service_mocks.MockUserResource, userId, resourceId int) {
+				r.EXPECT().GetById(userId, resourceId).Return(models.UserResource{}, errors.New("something went wrong"))
+			},
+			expectedStatusCode:   500,
+			expectedResponseBody: `{"message":"something went wrong"}`,
+		},
+	}
+
+	for _, testCase := range testTable {
+		t.Run(testCase.name, func(t *testing.T) {
+			controller := gomock.NewController(t)
+			controller.Finish()
+
+			repo := service_mocks.NewMockUserResource(controller)
+			testCase.mockBehavior(repo, testCase.UID, testCase.resourceId)
+
+			service := &service.Service{UserResource: repo}
+			handler := Handler{service}
+
+			router := gin.New()
+			router.GET("/resource", handler.getResourceById)
+
+			recorder := httptest.NewRecorder()
+			request := httptest.NewRequest("GET", "/resource", nil)
+
+			testContext, _ := gin.CreateTestContext(recorder)
+			testContext.Request = request
+			testContext.Set(userCtx, testCase.UID)
+			testContext.AddParam("id", fmt.Sprintf("%d", testCase.resourceId))
+
+			handler.getResourceById(testContext)
+
+			assert.Equal(t, testCase.expectedStatusCode, recorder.Code)
+			assert.Equal(t, testCase.expectedResponseBody, recorder.Body.String())
+
+		})
+	}
+}
