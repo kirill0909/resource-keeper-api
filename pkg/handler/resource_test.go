@@ -376,3 +376,75 @@ func TestHandler_updateResource(t *testing.T) {
 func pointerString(str string) *string {
 	return &str
 }
+
+func TestHandler_deleteResource(t *testing.T) {
+	type mockBehavior func(r *service_mocks.MockUserResource, userId, rsourceid int)
+
+	testTable := []struct {
+		name                 string
+		UID                  int
+		resourceId           int
+		mockBehavior         mockBehavior
+		expectedStatusCode   int
+		expectedResponseBody string
+	}{
+		{
+			name:       "Ok",
+			UID:        1,
+			resourceId: 1,
+			mockBehavior: func(r *service_mocks.MockUserResource, userId, resourceId int) {
+				r.EXPECT().DeleteResource(userId, resourceId).Return(nil)
+			},
+			expectedStatusCode:   200,
+			expectedResponseBody: `{"status":"ok"}`,
+		},
+		{
+			name: "Invalid id param",
+			mockBehavior: func(r *service_mocks.MockUserResource, userId, resourceId int) {
+				r.EXPECT().DeleteResource(userId, resourceId).Return(errors.New("invalid id param"))
+			},
+			expectedStatusCode:   500,
+			expectedResponseBody: `{"message":"invalid id param"}`,
+		},
+		{
+			name:       "Service faild",
+			UID:        1,
+			resourceId: 1,
+			mockBehavior: func(r *service_mocks.MockUserResource, userId, resourceId int) {
+				r.EXPECT().DeleteResource(userId, resourceId).Return(errors.New("something went wrong"))
+			},
+			expectedStatusCode:   500,
+			expectedResponseBody: `{"message":"something went wrong"}`,
+		},
+	}
+
+	for _, testCase := range testTable {
+		t.Run(testCase.name, func(t *testing.T) {
+			controller := gomock.NewController(t)
+			controller.Finish()
+
+			repo := service_mocks.NewMockUserResource(controller)
+			testCase.mockBehavior(repo, testCase.UID, testCase.resourceId)
+
+			service := &service.Service{UserResource: repo}
+			handler := Handler{service}
+
+			router := gin.New()
+			router.DELETE("/resource", handler.deleteResource)
+
+			recorder := httptest.NewRecorder()
+			request := httptest.NewRequest("PUT", "/resource", nil)
+
+			testContext, _ := gin.CreateTestContext(recorder)
+			testContext.Request = request
+			testContext.Set(userCtx, testCase.UID)
+			testContext.AddParam("id", fmt.Sprintf("%d", testCase.resourceId))
+
+			handler.deleteResource(testContext)
+
+			assert.Equal(t, testCase.expectedStatusCode, recorder.Code)
+			assert.Equal(t, testCase.expectedResponseBody, recorder.Body.String())
+
+		})
+	}
+}
