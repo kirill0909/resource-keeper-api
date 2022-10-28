@@ -118,11 +118,14 @@ func (h *Handler) deleteResource(c *gin.Context) {
 		return
 	}
 
-	err = h.service.UserResource.DeleteResource(userId, resourceId)
+	deletedResourceId, err := h.service.UserResource.DeleteResource(userId, resourceId)
 	if err != nil {
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	c.JSON(http.StatusOK, statusResponse{Status: "ok"})
+	c.JSON(http.StatusOK, statusResponse{
+		Status: "ok",
+		Id:     deletedResourceId,
+	})
 }

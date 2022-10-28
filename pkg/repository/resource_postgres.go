@@ -55,17 +55,17 @@ func (r *UserResourcePostgres) GetById(userId, resourceId int) (models.UserResou
 	return resource, err
 }
 
-func (r *UserResourcePostgres) DeleteResource(userId, resourceId int) error {
+func (r *UserResourcePostgres) DeleteResource(userId, resourceId int) (int, error) {
 	var id int
 
 	query := fmt.Sprintf("DELETE FROM %s WHERE user_id = $1 AND id = $2 RETURNING id",
 		usersResourcesTable)
 	row := r.db.QueryRow(query, userId, resourceId)
 	if err := row.Scan(&id); err != nil {
-		return errors.New("resource id not found")
+		return 0, errors.New("resource id not found")
 	}
 
-	return nil
+	return id, nil
 }
 
 func (r *UserResourcePostgres) UpdateResource(userId, resourceId int, input models.UserResourceUpdate) error {

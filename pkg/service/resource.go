@@ -67,7 +67,7 @@ func (s *UserResourceService) GetById(userId, resourceId int) (models.UserResour
 	return resource, nil
 }
 
-func (s *UserResourceService) DeleteResource(userId, resourceId int) error {
+func (s *UserResourceService) DeleteResource(userId, resourceId int) (int, error) {
 	return s.repo.DeleteResource(userId, resourceId)
 }
 
