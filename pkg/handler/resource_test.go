@@ -393,15 +393,15 @@ func TestHandler_deleteResource(t *testing.T) {
 			UID:        1,
 			resourceId: 1,
 			mockBehavior: func(r *service_mocks.MockUserResource, userId, resourceId int) {
-				r.EXPECT().DeleteResource(userId, resourceId).Return(nil)
+				r.EXPECT().DeleteResource(userId, resourceId).Return(1, nil)
 			},
 			expectedStatusCode:   200,
-			expectedResponseBody: `{"status":"ok"}`,
+			expectedResponseBody: `{"id":1,"status":"ok"}`,
 		},
 		{
 			name: "Invalid id param",
 			mockBehavior: func(r *service_mocks.MockUserResource, userId, resourceId int) {
-				r.EXPECT().DeleteResource(userId, resourceId).Return(errors.New("invalid id param"))
+				r.EXPECT().DeleteResource(userId, resourceId).Return(0, errors.New("invalid id param"))
 			},
 			expectedStatusCode:   500,
 			expectedResponseBody: `{"message":"invalid id param"}`,
@@ -411,7 +411,7 @@ func TestHandler_deleteResource(t *testing.T) {
 			UID:        1,
 			resourceId: 1,
 			mockBehavior: func(r *service_mocks.MockUserResource, userId, resourceId int) {
-				r.EXPECT().DeleteResource(userId, resourceId).Return(errors.New("something went wrong"))
+				r.EXPECT().DeleteResource(userId, resourceId).Return(0, errors.New("something went wrong"))
 			},
 			expectedStatusCode:   500,
 			expectedResponseBody: `{"message":"something went wrong"}`,

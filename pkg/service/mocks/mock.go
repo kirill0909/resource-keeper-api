@@ -141,11 +141,12 @@ func (mr *MockUserResourceMockRecorder) CreateResource(resource interface{}) *go
 }
 
 // DeleteResource mocks base method.
-func (m *MockUserResource) DeleteResource(userId, resourceId int) error {
+func (m *MockUserResource) DeleteResource(userId, resourceId int) (int, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DeleteResource", userId, resourceId)
-	ret0, _ := ret[0].(error)
-	return ret0
+	ret0, _ := ret[0].(int)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // DeleteResource indicates an expected call of DeleteResource.

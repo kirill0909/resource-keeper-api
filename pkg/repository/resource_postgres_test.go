@@ -256,3 +256,102 @@ func TestUserResourcePostgres_DeleteResource(t *testing.T) {
 	}
 
 }
+
+func TestUserResourcePostgres_UpdateResource(t *testing.T) {
+	db, mock, err := sqlmock.Newx()
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a stub DB connection", err.Error())
+	}
+	defer db.Close()
+
+	repo := NewUserResourcePostgres(db)
+
+	testTable := []struct {
+		name       string
+		mock       func()
+		input      models.UserResourceUpdate
+		userId     int
+		resourceId int
+		want       int
+		wantErr    bool
+	}{
+		{
+			name: "Ok",
+			mock: func() {
+				mock.ExpectExec("UPDATE users_resources SET (.+) WHERE (.+)").
+					WithArgs("rname", "rlogin", "rpass").WillReturnResult(sqlmock.NewResult(0, 1))
+			},
+			input: models.UserResourceUpdate{
+				ResourceName:     pointerString("rname"),
+				ResourceLogin:    pointerString("rlogin"),
+				ResourcePassword: pointerString("rpass"),
+			},
+			userId:     1,
+			resourceId: 1,
+			want:       1,
+		},
+		{
+			name: "Ok_With_Out_ResourceName",
+			mock: func() {
+				mock.ExpectExec("UPDATE users_resources SET (.+) WHERE (.+)").
+					WithArgs("rlogin", "rpass").WillReturnResult(sqlmock.NewResult(0, 1))
+			},
+			input: models.UserResourceUpdate{
+				ResourceLogin:    pointerString("rlogin"),
+				ResourcePassword: pointerString("rpass"),
+			},
+			userId:     1,
+			resourceId: 1,
+			want:       1,
+		},
+		{
+			name: "Ok_With_Out_ResourceLogin",
+			mock: func() {
+				mock.ExpectExec("UPDATE users_resources SET (.+) WHERE (.+)").
+					WithArgs("rname", "rpass").WillReturnResult(sqlmock.NewResult(0, 1))
+			},
+			input: models.UserResourceUpdate{
+				ResourceName:     pointerString("rname"),
+				ResourcePassword: pointerString("rpass"),
+			},
+			userId:     1,
+			resourceId: 1,
+			want:       1,
+		},
+		{
+			name: "Ok_With_Out_ResourcePassword",
+			mock: func() {
+				mock.ExpectExec("UPDATE users_resources SET (.+) WHERE (.+)").
+					WithArgs("rname", "rlogin").WillReturnResult(sqlmock.NewResult(0, 1))
+			},
+			input: models.UserResourceUpdate{
+				ResourceName:  pointerString("rname"),
+				ResourceLogin: pointerString("rlogin"),
+			},
+			userId:     1,
+			resourceId: 1,
+			want:       1,
+		},
+	}
+
+	for _, testCase := range testTable {
+		t.Run(testCase.name, func(t *testing.T) {
+			testCase.mock()
+
+			err := repo.UpdateResource(
+				testCase.userId, testCase.resourceId, testCase.input)
+			if testCase.wantErr {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+			}
+
+			assert.NoError(t, mock.ExpectationsWereMet())
+		})
+	}
+
+}
+
+func pointerString(str string) *string {
+	return &str
+}

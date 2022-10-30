@@ -124,8 +124,8 @@ func (h *Handler) deleteResource(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, statusResponse{
-		Status: "ok",
-		Id:     deletedResourceId,
+	c.JSON(http.StatusOK, gin.H{
+		"status": "ok",
+		"id":     deletedResourceId,
 	})
 }
