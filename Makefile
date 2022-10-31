@@ -2,6 +2,7 @@
 .SILENT:
 
 build:
+	sudo rm -r .database
 	docker-compose up --build  app
 
 up:
