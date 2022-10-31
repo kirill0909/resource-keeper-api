@@ -20,7 +20,7 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Build container image
-        run: docker-compose up --project-name $(echo IMAGE_NAME)/$(echo CONTAINER_APP) --build app:$(echo $GITHUB_SHA | head -c7) .
+        run: docker-compose up --project-name $(echo IMAGE_NAME)-$(echo CONTAINER_APP) --build app:$(echo $GITHUB_SHA | head -c7) .
         # run: docker build -t $(echo $REGISTRY)/$(echo $IMAGE_NAME):$(echo $GITHUB_SHA | head -c7) .
 
       - name: Install doctl
@@ -32,7 +32,7 @@ jobs:
         run: doctl registry login --expiry-seconds 600
 
       - name: Push image to DigitalOcean Container Registry
-        run: docker push $(echo $IMAGE_NAME)/$(echo $CONTAINER_APP):$(echo $GITHUB_SHA | head -c7)
+        run: docker push $(echo $IMAGE_NAME)-$(echo $CONTAINER_APP):$(echo $GITHUB_SHA | head -c7)
         # run: docker push $(echo $REGISTRY)/$(echo $IMAGE_NAME):$(echo $GITHUB_SHA | head -c7)
 
   deploy:
