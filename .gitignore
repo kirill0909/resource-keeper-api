@@ -4,6 +4,7 @@
 .env
 *.key
 *.crt
+.database
 plane
 plane2
 rules

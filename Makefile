@@ -2,8 +2,16 @@
 .SILENT:
 
 build:
-	go build -o .bin/main cmd/main.go
+	docker-compose up --build  app
 
-run: build
-	./run.sh
+up:
+	docker-compose up -d
 
+stop:
+	docker-compose stop
+	
+migrate:
+	./migrate.sh
+
+ping:
+	curl -k -X GET https://localhost:8000/auth/ping
