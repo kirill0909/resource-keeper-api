@@ -32,7 +32,7 @@ jobs:
         run: doctl registry login --expiry-seconds 600
 
       - name: Push image to DigitalOcean Container Registry
-        run: docker push $(echo IMAGE_NAME)/$(echo CONTAINER_APP):$(echo $GITHUB_SHA | head -c7)
+        run: docker push $(echo $IMAGE_NAME)/$(echo $CONTAINER_APP):$(echo $GITHUB_SHA | head -c7)
         # run: docker push $(echo $REGISTRY)/$(echo $IMAGE_NAME):$(echo $GITHUB_SHA | head -c7)
 
   deploy:
@@ -54,8 +54,8 @@ jobs:
             docker-compose stop
             # docker stop $(echo $CONTAINER_NAME)
             # Remove old container
-            docker rm $(echo IMAGE_NAME)-$(echo CONTAINER_APP)
-            docker rm $(echo IMAGE_NAME)-$(echo CONTAINER_DB)
+            docker rm $(echo $IMAGE_NAME)-$(echo $CONTAINER_APP)
+            docker rm $(echo $IMAGE_NAME)-$(echo $CONTAINER_DB)
             # Set env  variables
             export DB_POSTGRES_PASSWORD=${{ secrets.DB_POSTGRES_PASSWORD }}
             export SOLT=${{ secrets.SOLT }}
