@@ -2,11 +2,10 @@
 .SILENT:
 
 build:
-	sudo rm -r .database
-	docker-compose up --build  app
+	sudo docker-compose up --build  app
 
 up:
-	docker-compose up -d
+	sudo docker-compose up -d
 
 stop:
 	docker-compose stop
