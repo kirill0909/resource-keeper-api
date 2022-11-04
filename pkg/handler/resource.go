@@ -77,7 +77,7 @@ func (h *Handler) getResourceById(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"resource": resource})
+	c.JSON(http.StatusOK, gin.H{"data": resource})
 }
 
 func (h *Handler) updateResource(c *gin.Context) {

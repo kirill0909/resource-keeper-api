@@ -51,6 +51,9 @@ func (r *UserResourcePostgres) GetById(userId, resourceId int) (models.UserResou
 	WHERE user_id = $1 AND users_resources.id = $2`, usersResourcesTable, usersTable)
 
 	err := r.db.Get(&resource, query, userId, resourceId)
+	if err.Error() == "sql: no rows in result set" {
+		return models.UserResource{}, errors.New("resource id not found")
+	}
 
 	return resource, err
 }

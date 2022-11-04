@@ -193,7 +193,7 @@ func TestHandler_getResourceById(t *testing.T) {
 					DateCreation: "2022-10-27 10:40:21.123", LastUpdate: "2022-10-27 10:40:21.123"}, nil)
 			},
 			expectedStatusCode: 200,
-			expectedResponseBody: `{"resource":{"id":1,"user_id":1,"resource_name":"rname","resource_login":"rlogin",` +
+			expectedResponseBody: `{"data":{"id":1,"user_id":1,"resource_name":"rname","resource_login":"rlogin",` +
 				`"resource_password":"rpass","date_creation":"2022-10-27 10:40:21.123","last_update":"2022-10-27 10:40:21.123"}}`,
 		},
 		{
@@ -213,6 +213,14 @@ func TestHandler_getResourceById(t *testing.T) {
 			},
 			expectedStatusCode:   500,
 			expectedResponseBody: `{"message":"something went wrong"}`,
+		},
+		{
+			name: "Resource id not found",
+			mockBehavior: func(r *service_mocks.MockUserResource, userId, resourceId int) {
+				r.EXPECT().GetById(userId, resourceId).Return(models.UserResource{}, errors.New("resource id not found"))
+			},
+			expectedStatusCode:   500,
+			expectedResponseBody: `{"message":"resource id not found"}`,
 		},
 	}
 
